@@ -110,8 +110,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
     //Boundary
     bool boundary = false; // if true full boundary, if false short boundary
-    double boundlen = 0.0; // if boundary is false, then this is the lenght of hard boundary
-
+    double boundlen = 20.0; // if boundary is false, then this is the lenght of hard boundary
+    double chemooutside = 0.0;
     /*
      * initialise a matrix that stores values of concentration of chemoattractant
      * */
@@ -382,7 +382,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
         // save data to plot chemoattractant concentration
 
         if (t%100 == 0 ){
-                ofstream output("ChemooutsideLEADFOLBoundary0matrix_growing_domain" + to_string(t) + ".csv");
+                ofstream output("Outsidechemo0LEADFOLBoundary200matrix_growing_domain" + to_string(t) + ".csv");
 
             output << "x, y, z, u" << "\n" << endl;
 
@@ -575,7 +575,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 round((x_in + sin(random_angle[i]) * l_filo_x)) >
                                 length_x - 1 || round(x[1] + cos(random_angle[i]) * l_filo_y) < 0 ||
                                 round(x[1] + cos(random_angle[i]) * l_filo_y) > length_y - 1) {
-                                new_chemo[i] = 0.0;
+                                new_chemo[i] = chemooutside;
                             } else {
                                 new_chemo[i] = chemo(round((x_in + sin(random_angle[i]) * l_filo_x)),
                                                      round(x[1] + cos(random_angle[i]) * l_filo_y));
@@ -584,7 +584,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                         }
 
                     }else{  // if the cell is ouside the domain
-                        old_chemo = 0;
+                        old_chemo = chemooutside;
 
                         for (int i = 0; i < filo_number; i++) {
 
@@ -592,7 +592,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 round((x_in + sin(random_angle[i]) * l_filo_x)) >
                                 length_x - 1 || round(x[1] + cos(random_angle[i]) * l_filo_y) < 0 ||
                                 round(x[1] + cos(random_angle[i]) * l_filo_y) > length_y - 1) {
-                                new_chemo[i] = 0.0;
+                                new_chemo[i] = chemooutside;
                             } else {
                                 new_chemo[i] = chemo(round((x_in + sin(random_angle[i]) * l_filo_x)),
                                                      round(x[1] + cos(random_angle[i]) * l_filo_y));
@@ -1055,12 +1055,23 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                         double random_angle = uniformpi(gen1);
 
-                        while (((x_in + sin(random_angle) * l_filo_y) < 0 ||
-                                ((x_in + sin(random_angle) * l_filo_y)) >
-                                length_x - 1 || (x[1] + cos(random_angle) * l_filo_y) < 0 ||
-                                (x[1] + cos(random_angle) * l_filo_y) > length_y - 1)) {
-                            random_angle = uniformpi(gen1);
+                        // full boundary
+                        if (boundary == true){
+                            while (((x_in + sin(random_angle) * l_filo_y) < 0 ||
+                                    ((x_in + sin(random_angle) * l_filo_y)) >
+                                    length_x - 1 || (x[1] + cos(random_angle) * l_filo_y) < 0 ||
+                                    (x[1] + cos(random_angle) * l_filo_y) > length_y - 1)) {
+                                random_angle = uniformpi(gen1);
+                            }
                         }
+                        if (boundary == false){
+                            while ((x_in + sin(random_angle) * l_filo_y) < 0 ||
+                                    ((x_in + sin(random_angle) * l_filo_y)) >
+                                    length_x - 1 ) {
+                                random_angle = uniformpi(gen1);
+                            }
+                        }
+
 
                         x += speed_f * vdouble2(sin(random_angle), cos(random_angle));
 
@@ -1187,7 +1198,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
         // save at every time step
         if (t % 100 ==0){
        #ifdef HAVE_VTK
-        vtkWriteGrid("ChemoOutsideLEADFOLBoundary0Cells", t, particles.get_grid(true));
+        vtkWriteGrid("Outsidechemo0LEADFOLBoundary200Cells", t, particles.get_grid(true));
         #endif
         }
 
