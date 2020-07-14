@@ -211,7 +211,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
     }
 
     // initialise neighbourhood search, note that the domain will grow in x direction, so I initialise larger domain
-    particles.init_neighbour_search(vdouble2(0, 0), 5 * vdouble2(length_x, length_y), vbool2(false, false));
+    particles.init_neighbour_search(vdouble2(-50, -50), 5 * vdouble2(length_x, length_y), vbool2(false, false));
 
     // save particles before they move
 
@@ -382,7 +382,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
         // save data to plot chemoattractant concentration
 
         if (t%100 == 0 ){
-                ofstream output("Outsidechemo0LEADFOLBoundary200matrix_growing_domain" + to_string(t) + ".csv");
+                ofstream output("Outsidechemo0LEADFOLBoundary200matrix_growing_domain0nseed" + to_string(t) + ".csv");
 
             output << "x, y, z, u" << "\n" << endl;
 
@@ -1065,11 +1065,9 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             }
                         }
                         if (boundary == false){
-                            while ((x_in + sin(random_angle) * l_filo_y) < 0 ||
-                                    ((x_in + sin(random_angle) * l_filo_y)) >
-                                    length_x - 1 ) {
+
                                 random_angle = uniformpi(gen1);
-                            }
+
                         }
 
 
@@ -1198,7 +1196,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
         // save at every time step
         if (t % 100 ==0){
        #ifdef HAVE_VTK
-        vtkWriteGrid("Outsidechemo0LEADFOLBoundary200Cells", t, particles.get_grid(true));
+        vtkWriteGrid("Outsidechemo0LEADFOLBoundary200Cells0nseed", t, particles.get_grid(true));
         #endif
         }
 
