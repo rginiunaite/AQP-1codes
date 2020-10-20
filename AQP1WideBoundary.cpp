@@ -63,12 +63,12 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
     // distance to the track parameters tunnel
 
-    bool tunnel = true;
+    bool tunnel = false;
     double dist_thres = 1;
     int closest_time;
     int leader_track;
     double track_spacing = 2; // spacing between positions on the track
-    int track_length = 60;
+    int track_length = 120;
 
 
     // domain growth parameters
@@ -118,8 +118,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
     double lam = 0.00035;//(100)/10; // to 1000 /h chemoattractant internalisation
 
     //Boundary
-    bool boundary = false; // if true full boundary, if false short boundary
-    double boundlen = 20.0; // if boundary is false, then this is the lenght of hard boundary, 20.0
+    bool boundary = true; // if true full boundary, if false short boundary
+    double boundlen = 0.0; // if boundary is false, then this is the lenght of hard boundary, 20.0
     double chemooutside = 0.0;
     /*
      * initialise a matrix that stores values of concentration of chemoattractant
@@ -606,7 +606,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             }
                         }          // no boundary in y if the position is after boundlen
                         else{
-                            if (free_position && x[0] > cell_radius) {
+                            if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                                                 (x[1]) < length_y *3 - cell_radius) {
                                 // if that is the case, move into that position
                                 get<position>(particles)[particle_id(j)] +=
                                         get<direction>(particles)[particle_id(j)];
@@ -749,7 +750,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 }
                             }else{// no boundary in y if the position is after boundlen
-                                if (free_position && x[0] > cell_radius) {
+                                if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                                                     (x[1]) < length_y *3 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[chemo_max_number]),
                                                                cos(random_angle[chemo_max_number])); // update if nothing is in the next position
@@ -840,7 +842,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 }
                             }else{
-                                if (free_position && x[0] > cell_radius ) {
+                                if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                                                     (x[1]) < length_y *3 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[filo_number]),
                                                                cos(random_angle[filo_number])); // update if nothing is in the next position
@@ -958,7 +961,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                             }
                         } else {
-                            if (free_position && x_chain[0] > cell_radius) {
+                            if (free_position && x_chain[0] > cell_radius && (x[1]) > cell_radius &&
+                                                 (x[1]) < length_y *3 - cell_radius) {
                                 get<position>(particles)[particle_id(j)] +=
                                         increase_fol_speed * get<direction>(particles[particle_id(j)]);
 
@@ -1073,8 +1077,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             // full boundary
                             if (boundary == true) {
                                 if (free_position &&
-                                    (x_in_chain) > 0 &&
-                                    (x_in_chain) < length_x - 1 && (x_chain[1]) > cell_radius + length_y &&
+                                    (x_in_chain) > cell_radius &&
+                                    (x_in_chain) < length_x - cell_radius && (x_chain[1]) > cell_radius + length_y &&
                                     (x_chain[1]) < 2*length_y - cell_radius) {
                                     //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                     get<position>(particles)[particle_id(j)] +=
@@ -1087,7 +1091,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 if (x_in_chain < boundlen) {
                                     if (free_position &&
                                         (x_in_chain) > 0 &&
-                                        (x_in_chain) < length_x - 1 && (x_chain[1]) > cell_radius + length_y &&
+                                        (x_in_chain) < length_x - 1 && (x_chain[1]) >  length_y + cell_radius &&
                                         (x_chain[1]) < 2*length_y - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1097,7 +1101,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 } else {
                                     if (free_position &&
                                         (x_in_chain) > 0 &&
-                                        (x_in_chain) < length_x - 1) {
+                                        (x_in_chain) < length_x - 1 && (x_chain[1]) > cell_radius &&
+                                        (x_chain[1]) < length_y *3 - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
                                                 increase_fol_speed * get<direction>(particles[particle_id(j)]);
@@ -1221,8 +1226,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             // full boundary
                             if (boundary == true) {
                                 if (free_position &&
-                                    ((x_can[0] * (length_x / domain_length))) > 0 &&
-                                    ((x_can[0] * (length_x / domain_length))) < length_x - 1 && (x_can[1]) > length_y +cell_radius &&
+                                    ((x_can[0] * (length_x / domain_length))) > cell_radius &&
+                                    ((x_can[0] * (length_x / domain_length))) < length_x - cell_radius && (x_can[1]) > length_y + cell_radius  &&
                                     (x_can[1]) < 2*length_y - cell_radius) {
 
                                     get<position>(particles[particle_id(j)]) = x_can;
@@ -1234,11 +1239,13 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             }
                             // short boundary
                             if (boundary == false) {
-                                if (x_can[0] * (length_x / domain_length) < boundlen) {
+
+                                if (x_can[0] < boundlen) {
+
                                     if (free_position &&
                                         ((x_can[0] * (length_x / domain_length))) > 0 &&
-                                        ((x_can[0] * (length_x / domain_length))) < length_x - 1 && (x_can[1]) > cell_radius +length_x &&
-                                        (x_can[1]) < length_y *2 - cell_radius) {
+                                            ((x_can[0] * (length_x / domain_length))) < length_x - 1 && (x_can[1]) > cell_radius + length_y &&
+                                        (x_can[1]) < length_y *2 -cell_radius) {
 
                                         get<position>(particles[particle_id(j)]) = x_can;
                                         get<attached_at_time_step>(particles[particle_id(j)]) += 1;
@@ -1250,7 +1257,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 } else {
                                     if (free_position &&
                                         ((x_can[0] * (length_x / domain_length))) > 0 &&
-                                        ((x_can[0] * (length_x / domain_length))) < length_x - 1) {
+                                        ((x_can[0] * (length_x / domain_length))) < length_x - cell_radius && (x_can[1]) > cell_radius &&
+                                        (x_can[1]) < length_y *3 - cell_radius) {
 
                                         get<position>(particles[particle_id(j)]) = x_can;
                                         get<attached_at_time_step>(particles[particle_id(j)]) += 1;
@@ -1265,34 +1273,35 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             }
 
 
-
                             // if it hasn't found a track
                             if (get<in_track>(particles[particle_id(j)]) == 0) {
 
                                 x = get<position>(particles)[particle_id(j)]; // make sure that x is set correctly
-
+                                x_in = x[0]*length_x/domain_length;
 
                                 double random_angle = uniformpi(gen1);
 
 
-                                // full boundary
+                                // full boundaryget<in_track>(particles[particle_id(j)])
                                 if (boundary == true) {
-                                    while (((x_in + sin(random_angle) * l_filo_y) < 0 ||
-                                            ((x_in + sin(random_angle) * l_filo_y)) >
-                                            length_x - 1 || (x[1] + cos(random_angle) * l_filo_y) < cell_radius||
-                                            (x[1] + cos(random_angle) * l_filo_y) > 3*length_y - cell_radius)) {
+                                    while (((x_in + sin(random_angle) * l_filo_y) < 0 || (x[1] + cos(random_angle) * l_filo_y) < length_y + cell_radius ||
+                                            (x[1] + cos(random_angle) * l_filo_y) > 2*length_y - cell_radius)) {
                                         random_angle = uniformpi(gen1);
                                     }
                                 }
                                 if (boundary == false) {
-
-                                    random_angle = uniformpi(gen1);
-
+                                    if (x[0] < boundlen) {
+                                        while (((x_in + sin(random_angle) * l_filo_y) < 0 || (x[1] + cos(random_angle) * l_filo_y) < length_y + cell_radius ||
+                                                (x[1] + cos(random_angle) * l_filo_y) > 2*length_y - cell_radius)) {
+                                            random_angle = uniformpi(gen1);
+                                        }
+                                    }else{
+                                        random_angle = uniformpi(gen1);
+                                    }
                                 }
 
                                 x += speed_f * vdouble2(sin(random_angle), cos(random_angle));
                                 // Non-uniform domain growth
-
 
                                 // Non-uniform domain growth, onl first half grows
                                 // if in the first part of the domain
@@ -1324,7 +1333,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 if (boundary == true) {
                                     //cout << "here" << get<position>(particles)[particle_id(j)] << endl;
                                     if (free_position && (x_in) > 0 &&
-                                        (x_in) < length_x - 1 && (x[1]) > cell_radius+length_y &&
+                                        (x_in) < length_x - cell_radius && (x[1]) > length_y + cell_radius &&
                                         (x[1]) < 2*length_y - cell_radius) {
                                         //cout << " moves " << endl;
                                         //cout << "how frequently come in here " << endl;
@@ -1334,11 +1343,11 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                     }
                                 }
                                 if (boundary == false) {
-                                    if (x_in < boundlen) {
+                                    if (x[0] < boundlen) {
+
                                         if (free_position && (x_in) > 0 &&
-                                            (x_in) < length_x - 1 && (x[1]) > cell_radius +length_y &&
+                                            (x_in) < length_x - 1 && (x[1]) > cell_radius+length_y &&
                                             (x[1]) < 2*length_y - cell_radius) {
-                                            //cout << " moves " << endl;
                                             //cout << "how frequently come in here " << endl;;
                                             get<position>(particles)[particle_id(j)] +=
                                                     speed_f * vdouble2(sin(random_angle),
@@ -1346,7 +1355,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                         }
                                     } else {
                                         if (free_position && (x_in) > 0 &&
-                                            (x_in) < length_x - 1) {
+                                            (x_in) < length_x - 1 && (x[1]) > 0 &&
+                                            (x[1]) < 3*length_y - cell_radius)  {
                                             //cout << " moves " << endl;
                                             //cout << "how frequently come in here " << endl;
                                             get<position>(particles)[particle_id(j)] +=
@@ -1457,7 +1467,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             //full boundary
                             if (boundary == true){
                                 if (free_position &&
-                                    x_chain[0]> cell_radius && (x_chain[1]) > cell_radius +length_y&&
+                                    x_in_chain > cell_radius && (x_chain[1]) > cell_radius +length_y&&
                                     (x_chain[1]) < length_y*2 -cell_radius) {
                                     //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                     get<position>(particles)[particle_id(j)] +=
@@ -1471,7 +1481,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             if (boundary == false){
                                 if(x_chain[0]< boundlen){
                                     if (free_position &&
-                                        x_chain[0]> cell_radius && (x_chain[1]) > cell_radius +length_y &&
+                                        x_in_chain> 0 && (x_chain[1]) > cell_radius +length_y &&
                                         (x_chain[1]) < length_y*2 - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1480,7 +1490,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                     }
                                 }else{
                                     if (free_position &&
-                                        x_chain[0]> cell_radius ) {
+                                        x_in_chain > 0 && (x_chain[1]) > cell_radius &&
+                                        (x_chain[1]) < length_y*3 - cell_radius ) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
                                                 increase_fol_speed * get<direction>(particles[particle_id(j)]);
@@ -1505,22 +1516,23 @@ VectorXi proportions(double diff_conc, int n_seed) {
                         // if it hasn't found anything close, move randomly
 
                         if (get<chain>(particles[particle_id(j)]) == 0) {
-
                             double random_angle = uniformpi(gen1);
 
-                            // full boundary
-                            if (boundary == true){
-                                while (((x_in + sin(random_angle) * l_filo_y) < 0 ||
-                                        ((x_in + sin(random_angle) * l_filo_y)) >
-                                        length_x - 1 || (x[1] + cos(random_angle) * l_filo_y) < 0 ||
-                                        (x[1] + cos(random_angle) * l_filo_y) > length_y*3 - cell_radius)) {
+                            if (boundary == true) {
+                                while (((x_in + sin(random_angle) * l_filo_y) < 0 || (x[1] + cos(random_angle) * l_filo_y) < length_y + cell_radius ||
+                                        (x[1] + cos(random_angle) * l_filo_y) > 2*length_y - cell_radius)) {
                                     random_angle = uniformpi(gen1);
                                 }
                             }
-                            if (boundary == false){
-
-                                random_angle = uniformpi(gen1);
-
+                            if (boundary == false) {
+                                if (x[0] < boundlen) {
+                                    while (((x_in + sin(random_angle) * l_filo_y) < 0 || (x[1] + cos(random_angle) * l_filo_y) < length_y + cell_radius ||
+                                            (x[1] + cos(random_angle) * l_filo_y) > 2*length_y - cell_radius)) {
+                                        random_angle = uniformpi(gen1);
+                                    }
+                                }else{
+                                    random_angle = uniformpi(gen1);
+                                }
                             }
 
 
@@ -1543,7 +1555,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             // if the position they want to move to is free and not out of bounds, move to that position
                             //full boundary
                             if (boundary == true){
-                                if (free_position &&x[0] > cell_radius && (x[1]) > cell_radius+length_x &&
+                                if (free_position &&x_in > 0 && (x[1]) > cell_radius+length_y &&
                                     (x[1]) < length_y*2 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                    cos(random_angle)); // update if nothing is in the next position
@@ -1556,7 +1568,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 //                        // short boundary
                             if (boundary == false) {
                                 if (x[0] < boundlen) {
-                                    if (free_position && x[0] > cell_radius && (x[1]) > cell_radius+length_y &&
+                                    if (free_position && x_in > 0 && (x[1]) > cell_radius+length_y &&
                                         (x[1]) < length_y *2 - cell_radius) {
                                         get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                        cos(random_angle)); // update if nothing is in the next position
@@ -1564,7 +1576,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                                                                                        cos(random_angle)); // update direction as well
                                     }
                                 } else {
-                                    if (free_position && x[0] > cell_radius) {
+                                    if (free_position && x_in > 0 && (x[1]) > cell_radius &&
+                                                         (x[1]) < length_y *3 - cell_radius) {
                                         get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                        cos(random_angle)); // update if nothing is in the next position
                                         get<direction>(particles)[particle_id(j)] = speed_f * vdouble2(sin(random_angle),
@@ -1679,19 +1692,21 @@ VectorXi proportions(double diff_conc, int n_seed) {
             }
         }
 
+
         // update positions
         particles.update_positions();
 
 
         // save at every time step
         if (t % 100 ==0){
+
 #ifdef HAVE_VTK
-            vtkWriteGrid("WideBoundaryPartialTunnelcells", t, particles.get_grid(true));
+            vtkWriteGrid("WideBoundaryFullContactcells", t, particles.get_grid(true));
 #endif
 
 
 
-            ofstream output("WideBoundaryPartialTunnelmatrix" + to_string(t) + ".csv");
+            ofstream output("WideBoundaryFullContactmatrix" + to_string(t) + ".csv");
 
             output << "x, y, z, u" << "\n" << endl;
 
@@ -1702,6 +1717,28 @@ VectorXi proportions(double diff_conc, int n_seed) {
                 }
                 output << "\n" << endl;
             }
+
+            // save data to track positions
+//            ofstream output1("track_positions.csv");
+//
+//            output1 << "x, y, z, u" << "\n" << endl;
+//
+//            vdouble2 posi;
+//
+//            for (int i=0;i<track_length;i++){
+//                for(int j=0;j<2;j++){
+//                    if(j==1){
+//                        output1 << 0 << ", ";
+//                    }
+//                    else{
+//                        posi = track_position[i][j];
+//                        output1 << posi[0] << ", " << posi[1] << ", ";
+//
+//                    }
+//                }
+//                output1 << "\n" << endl;
+//            }
+
 
         }
 
