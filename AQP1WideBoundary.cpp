@@ -21,7 +21,7 @@ using namespace std;
 using namespace Aboria;
 using namespace Eigen; // objects VectorXf, MatrixXf
 
-VectorXi proportions(double diff_conc, int n_seed) {
+VectorXd proportions(double diff_conc, int n_seed) {
 
 
     // model parameters
@@ -54,8 +54,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
     double dettach_prob = 0.5; // probability that a follower cell which is on trail looses the trail
     double chemo_leader = 0.9; //0.5; // phenotypic switching happens when the concentration of chemoattractant is higher than this (presentation video 0.95), no phenotypic switching
     double eps = 1; // for phenotypic switching, the distance has to be that much higher
-    const int filo_number = 3; // number of filopodia sent
-    int same_dir = 0; // number of steps in the same direction +1, because if 0, then only one step in the same direction
+    const int filo_number = 2; // number of filopodia sent
+    int same_dir = 2; // number of steps in the same direction +1, because if 0, then only one step in the same direction
     bool random_pers = true; // persistent movement also when the cell moves randomly
     int count_dir = 0; // this is to count the number of times the cell moved the same direction, up to same_dir for each cell
 
@@ -63,7 +63,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
     // distance to the track parameters tunnel
 
-    bool tunnel = false;
+    bool tunnel = true;
     double dist_thres = 1;
     int closest_time;
     int leader_track;
@@ -119,7 +119,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
     //Boundary
     bool boundary = true; // if true full boundary, if false short boundary
-    double boundlen = 0.0; // if boundary is false, then this is the lenght of hard boundary, 20.0
+    double boundlen = 50.0; // if boundary is false, then this is the lenght of hard boundary, 20.0!!!!!
     double chemooutside = 0.0;
     /*
      * initialise a matrix that stores values of concentration of chemoattractant
@@ -487,7 +487,11 @@ VectorXi proportions(double diff_conc, int n_seed) {
         if (t % freq_growth == 0) {
 
             for (int i = 0; i < particles.size(); i++) {
+              vdouble2 xposition = get<position>(particles)[i]*vdouble2((domain_length / old_length), 1);
+              xposition[0] = (length_x / domain_length) * xposition[0];
+              if (xposition[0]< length_x-cell_radius){
                 get<position>(particles)[i] *= vdouble2((domain_length / old_length), 1);
+              }
             }
             old_length = domain_length;
         }
@@ -584,7 +588,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                     // full length boundary
                     if (boundary == true){
-                        if (free_position && x[0] > cell_radius && (x[1]) > cell_radius +length_y&&
+                        if (free_position && x[0] > cell_radius && x_in < length_x - cell_radius && (x[1]) > cell_radius +length_y&&
                             (x[1]) < length_y*2 - cell_radius) {
                             // if that is the case, move into that position
                             get<position>(particles)[particle_id(j)] +=
@@ -598,7 +602,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                     // hard boundary if the position is less than boundlen
                     if (boundary == false){
                         if (x[0] < boundlen){
-                            if (free_position && x[0] > cell_radius && (x[1]) > cell_radius + length_y&&
+                            if (free_position && x[0] > cell_radius && x_in < length_x - cell_radius && (x[1]) > cell_radius + length_y&&
                                 (x[1]) < length_y*2 - cell_radius) {
                                 // if that is the case, move into that position
                                 get<position>(particles)[particle_id(j)] +=
@@ -606,7 +610,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             }
                         }          // no boundary in y if the position is after boundlen
                         else{
-                            if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                            if (free_position && x[0] > cell_radius && x_in < length_x - cell_radius && (x[1]) > cell_radius &&
                                                  (x[1]) < length_y *3 - cell_radius) {
                                 // if that is the case, move into that position
                                 get<position>(particles)[particle_id(j)] +=
@@ -651,6 +655,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                     double old_chemo;
                     array<double, filo_number> new_chemo;
                     // if the cell is inside the domain
+
 
                     old_chemo = chemo((round(x_in)), round(x)[1]);
 
@@ -709,7 +714,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                         // full length boundary
                         if (boundary == true)
-                            if (free_position && x[0] > cell_radius && (x[1]) > cell_radius +length_y&&
+                            if (free_position && x[0] > cell_radius &&  x_in < length_x - cell_radius && (x[1]) > cell_radius +length_y &&
                                 (x[1]) < length_y*2 - cell_radius) {
                                 get<position>(particles)[particle_id(j)] +=
                                         speed_l * vdouble2(sin(random_angle[chemo_max_number]),
@@ -732,7 +737,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                         if (boundary == false){
                             // hard boundary if the position is less than boundlen
                             if (x[0] < boundlen){
-                                if (free_position && x[0] > cell_radius && (x[1]) > cell_radius +length_y &&
+                                if (free_position && x[0] > cell_radius &&  x_in < length_x - cell_radius && (x[1]) > cell_radius +length_y &&
                                     (x[1]) < length_y*2 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[chemo_max_number]),
@@ -750,7 +755,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 }
                             }else{// no boundary in y if the position is after boundlen
-                                if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                                if (free_position && x[0] > cell_radius &&  x_in < length_x - cell_radius && (x[1]) > cell_radius &&
                                                      (x[1]) < length_y *3 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[chemo_max_number]),
@@ -799,7 +804,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                         // update the position if the place they want to move to is free and not out of bounds
                         //full boundary
                         if (boundary == true){
-                            if (free_position && x[0] > cell_radius &&  (x[1]) > cell_radius + length_y &&
+                            if (free_position && x[0] > cell_radius &&  x_in < length_x - cell_radius &&  (x[1]) > cell_radius + length_y &&
                                 (x[1]) < length_y*2 - cell_radius) {
                                 get<position>(particles)[particle_id(j)] +=
                                         speed_l * vdouble2(sin(random_angle[filo_number]),
@@ -823,7 +828,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                         //Short boundary
                         if (boundary == false){
                             if (x[0] < boundlen ){
-                                if (free_position && x[0] > cell_radius &&  (x[1]) > cell_radius +length_y &&
+                                if (free_position && x[0] > cell_radius && x_in < length_x - cell_radius &&  (x[1]) > cell_radius +length_y &&
                                     (x[1]) < length_y*2 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[filo_number]),
@@ -842,7 +847,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 }
                             }else{
-                                if (free_position && x[0] > cell_radius && (x[1]) > cell_radius &&
+                                if (free_position && x[0] > cell_radius &&  x_in < length_x - cell_radius && (x[1]) > cell_radius &&
                                                      (x[1]) < length_y *3 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] +=
                                             speed_l * vdouble2(sin(random_angle[filo_number]),
@@ -944,7 +949,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                     // update the position if the place they want to move to is free and not out of bounds
                     if (boundary == true) {
-                        if (free_position && x_chain[0] > cell_radius && (x_chain[1]) > cell_radius + length_y &&
+                        if (free_position && x_chain[0] > cell_radius && x_in_chain < length_x-cell_radius && (x_chain[1]) > cell_radius + length_y &&
                             (x_chain[1]) < length_y * 2 - cell_radius) {
                             get<position>(particles)[particle_id(j)] +=
                                     increase_fol_speed * get<direction>(particles[particle_id(j)]);
@@ -954,14 +959,14 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                     if (boundary == false) {
                         if (x_chain[0] < boundlen) {
-                            if (free_position && x_chain[0] > cell_radius && (x_chain[1]) > cell_radius + length_y &&
+                            if (free_position && x_chain[0] > cell_radius && x_in_chain < length_x-cell_radius && (x_chain[1]) > cell_radius + length_y &&
                                 (x_chain[1]) < length_y * 2 - cell_radius) {
                                 get<position>(particles)[particle_id(j)] +=
                                         increase_fol_speed * get<direction>(particles[particle_id(j)]);
 
                             }
                         } else {
-                            if (free_position && x_chain[0] > cell_radius && (x[1]) > cell_radius &&
+                            if (free_position && x_chain[0] > cell_radius && x_in_chain < length_x-cell_radius && (x[1]) > cell_radius &&
                                                  (x[1]) < length_y *3 - cell_radius) {
                                 get<position>(particles)[particle_id(j)] +=
                                         increase_fol_speed * get<direction>(particles[particle_id(j)]);
@@ -1077,8 +1082,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             // full boundary
                             if (boundary == true) {
                                 if (free_position &&
-                                    (x_in_chain) > cell_radius &&
-                                    (x_in_chain) < length_x - cell_radius && (x_chain[1]) > cell_radius + length_y &&
+                                    (x_in_chain) > cell_radius*(length_x/domain_length) &&
+                                    (x_in_chain) < length_x - cell_radius  && (x_chain[1]) > cell_radius + length_y &&
                                     (x_chain[1]) < 2*length_y - cell_radius) {
                                     //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                     get<position>(particles)[particle_id(j)] +=
@@ -1090,8 +1095,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             if (boundary == false) {
                                 if (x_in_chain < boundlen) {
                                     if (free_position &&
-                                        (x_in_chain) > 0 &&
-                                        (x_in_chain) < length_x - 1 && (x_chain[1]) >  length_y + cell_radius &&
+                                        (x_in_chain) >  cell_radius*(length_x/domain_length) &&
+                                        (x_in_chain) < length_x - cell_radius  && (x_chain[1]) >  length_y + cell_radius &&
                                         (x_chain[1]) < 2*length_y - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1100,8 +1105,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                     }
                                 } else {
                                     if (free_position &&
-                                        (x_in_chain) > 0 &&
-                                        (x_in_chain) < length_x - 1 && (x_chain[1]) > cell_radius &&
+                                        (x_in_chain) >  cell_radius*(length_x/domain_length) &&
+                                        (x_in_chain) < length_x - cell_radius  && (x_chain[1]) > cell_radius &&
                                         (x_chain[1]) < length_y *3 - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1227,7 +1232,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             if (boundary == true) {
                                 if (free_position &&
                                     ((x_can[0] * (length_x / domain_length))) > cell_radius &&
-                                    ((x_can[0] * (length_x / domain_length))) < length_x - cell_radius && (x_can[1]) > length_y + cell_radius  &&
+                                    ((x_can[0] * (length_x / domain_length))) < length_x - cell_radius  && (x_can[1]) > length_y + cell_radius  &&
                                     (x_can[1]) < 2*length_y - cell_radius) {
 
                                     get<position>(particles[particle_id(j)]) = x_can;
@@ -1242,9 +1247,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 if (x_can[0] < boundlen) {
 
-                                    if (free_position &&
-                                        ((x_can[0] * (length_x / domain_length))) > 0 &&
-                                            ((x_can[0] * (length_x / domain_length))) < length_x - 1 && (x_can[1]) > cell_radius + length_y &&
+                                    if (free_position && x_can[0] * (length_x / domain_length) >  cell_radius*(length_x/domain_length) && (x_can[0] * (length_x / domain_length)) < length_x-cell_radius
+                              && (x_can[1]) > cell_radius + length_y &&
                                         (x_can[1]) < length_y *2 -cell_radius) {
 
                                         get<position>(particles[particle_id(j)]) = x_can;
@@ -1256,7 +1260,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
                                 } else {
                                     if (free_position &&
-                                        ((x_can[0] * (length_x / domain_length))) > 0 &&
+                                        ((x_can[0] * (length_x / domain_length))) >  cell_radius*(length_x/domain_length) &&
                                         ((x_can[0] * (length_x / domain_length))) < length_x - cell_radius && (x_can[1]) > cell_radius &&
                                         (x_can[1]) < length_y *3 - cell_radius) {
 
@@ -1332,7 +1336,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 // full boundary
                                 if (boundary == true) {
                                     //cout << "here" << get<position>(particles)[particle_id(j)] << endl;
-                                    if (free_position && (x_in) > 0 &&
+                                    if (free_position && (x_in) > cell_radius*(length_x/domain_length) &&
                                         (x_in) < length_x - cell_radius && (x[1]) > length_y + cell_radius &&
                                         (x[1]) < 2*length_y - cell_radius) {
                                         //cout << " moves " << endl;
@@ -1345,8 +1349,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                 if (boundary == false) {
                                     if (x[0] < boundlen) {
 
-                                        if (free_position && (x_in) > 0 &&
-                                            (x_in) < length_x - 1 && (x[1]) > cell_radius+length_y &&
+                                        if (free_position && (x_in) >  cell_radius*(length_x/domain_length) &&
+                                            (x_in) < length_x - cell_radius && (x[1]) > cell_radius+length_y &&
                                             (x[1]) < 2*length_y - cell_radius) {
                                             //cout << "how frequently come in here " << endl;;
                                             get<position>(particles)[particle_id(j)] +=
@@ -1354,8 +1358,8 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                                                        cos(random_angle)); // update if nothing is in the next position
                                         }
                                     } else {
-                                        if (free_position && (x_in) > 0 &&
-                                            (x_in) < length_x - 1 && (x[1]) > 0 &&
+                                        if (free_position && (x_in) >  cell_radius*(length_x/domain_length) &&
+                                            (x_in) < length_x - cell_radius && (x[1]) > 0 &&
                                             (x[1]) < 3*length_y - cell_radius)  {
                                             //cout << " moves " << endl;
                                             //cout << "how frequently come in here " << endl;
@@ -1467,7 +1471,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             //full boundary
                             if (boundary == true){
                                 if (free_position &&
-                                    x_in_chain > cell_radius && (x_chain[1]) > cell_radius +length_y&&
+                                    x_in_chain > cell_radius*(length_x/domain_length) && x_in_chain < length_x-cell_radius && (x_chain[1]) > cell_radius +length_y&&
                                     (x_chain[1]) < length_y*2 -cell_radius) {
                                     //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                     get<position>(particles)[particle_id(j)] +=
@@ -1481,7 +1485,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             if (boundary == false){
                                 if(x_chain[0]< boundlen){
                                     if (free_position &&
-                                        x_in_chain> 0 && (x_chain[1]) > cell_radius +length_y &&
+                                        x_in_chain>  cell_radius*(length_x/domain_length) && x_in_chain < length_x-cell_radius  && (x_chain[1]) > cell_radius +length_y &&
                                         (x_chain[1]) < length_y*2 - cell_radius) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1490,7 +1494,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                     }
                                 }else{
                                     if (free_position &&
-                                        x_in_chain > 0 && (x_chain[1]) > cell_radius &&
+                                        x_in_chain >  cell_radius*(length_x/domain_length) && x_in_chain < length_x-cell_radius  && (x_chain[1]) > cell_radius &&
                                         (x_chain[1]) < length_y*3 - cell_radius ) {
                                         //cout << "direction " << get<direction>(particles[particle_id(j)]) << endl;
                                         get<position>(particles)[particle_id(j)] +=
@@ -1555,7 +1559,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                             // if the position they want to move to is free and not out of bounds, move to that position
                             //full boundary
                             if (boundary == true){
-                                if (free_position &&x_in > 0 && (x[1]) > cell_radius+length_y &&
+                                if (free_position &&x_in >  cell_radius*(length_x/domain_length) && x_in < length_x - cell_radius  && (x[1]) > cell_radius+length_y &&
                                     (x[1]) < length_y*2 - cell_radius) {
                                     get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                    cos(random_angle)); // update if nothing is in the next position
@@ -1568,7 +1572,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 //                        // short boundary
                             if (boundary == false) {
                                 if (x[0] < boundlen) {
-                                    if (free_position && x_in > 0 && (x[1]) > cell_radius+length_y &&
+                                    if (free_position && x_in >  cell_radius*(length_x/domain_length) && x_in < length_x-cell_radius && (x[1]) > cell_radius+length_y &&
                                         (x[1]) < length_y *2 - cell_radius) {
                                         get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                        cos(random_angle)); // update if nothing is in the next position
@@ -1576,7 +1580,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
                                                                                                        cos(random_angle)); // update direction as well
                                     }
                                 } else {
-                                    if (free_position && x_in > 0 && (x[1]) > cell_radius &&
+                                    if (free_position && x_in >  cell_radius*(length_x/domain_length) && x_in < length_x-cell_radius && (x[1]) > cell_radius &&
                                                          (x[1]) < length_y *3 - cell_radius) {
                                         get<position>(particles)[particle_id(j)] += speed_f * vdouble2(sin(random_angle),
                                                                                                        cos(random_angle)); // update if nothing is in the next position
@@ -1699,26 +1703,26 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
         // save at every time step
         if (t % 100 ==0){
+//
+//#ifdef HAVE_VTK
+//            vtkWriteGrid("WideBoundary500Boundcells", t, particles.get_grid(true));
+//#endif
+//
+//
+//
+//            ofstream output("WideBoundary500Boundmatrix" + to_string(t) + ".csv");
+//
+//            output << "x, y, z, u" << "\n" << endl;
+//
+//
+//            for (int i = 0; i < length_x * length_y*3; i++) {
+//                for (int j = 0; j < 4; j++) {
+//                    output << chemo_3col(i, j) << ", ";
+//                }
+//                output << "\n" << endl;
+//            }
 
-#ifdef HAVE_VTK
-            vtkWriteGrid("WideBoundaryFullContactcells", t, particles.get_grid(true));
-#endif
-
-
-
-            ofstream output("WideBoundaryFullContactmatrix" + to_string(t) + ".csv");
-
-            output << "x, y, z, u" << "\n" << endl;
-
-
-            for (int i = 0; i < length_x * length_y*3; i++) {
-                for (int j = 0; j < 4; j++) {
-                    output << chemo_3col(i, j) << ", ";
-                }
-                output << "\n" << endl;
-            }
-
-            // save data to track positions
+//             save data to track positions
 //            ofstream output1("track_positions.csv");
 //
 //            output1 << "x, y, z, u" << "\n" << endl;
@@ -1740,7 +1744,7 @@ VectorXi proportions(double diff_conc, int n_seed) {
 //            }
 
 
-        }
+       }
 
 
 
@@ -1767,7 +1771,65 @@ VectorXi proportions(double diff_conc, int n_seed) {
 
     }
 
-    return proportions;
+
+
+    /*
+  * Proportion that break
+  *
+  */
+
+    double pro_break = 0.0; // the stream did not break
+
+    int followers_not_in_chain = 0;
+
+    for (int i = 0; i < particles.size(); ++i){
+      if (get<chain>(particles[i]) == 0){
+        if (get<type>(particles[i]) == 1){
+          followers_not_in_chain += 1; // add to coung
+        }
+      }
+    }
+
+    pro_break = double(followers_not_in_chain)/(double(particles.size()-N));
+
+    cout << pro_break << endl;
+
+
+    // proportions in different y regions:
+
+  VectorXi regions = VectorXi::Zero(3);
+
+    // when regions 120, 240, and the rest
+    for (int j = 0; j < particles.size(); j++) {
+      vdouble2 x = get<position>(particles[j]);
+      if (x[1] >cell_radius + length_y && x[1] < length_y *2 - cell_radius) {
+        regions(0) +=1;
+      }
+      if (x[1] >cell_radius + length_y/2 && x[1] < length_y *2 + length_y/2 - cell_radius) {
+        regions(1) +=1;
+      }
+      if (x[1] >cell_radius  && x[1] < length_y *3 - cell_radius) {
+        regions(2) +=1;
+      }
+    }
+
+
+  regions(2) = regions(2) - regions(1); // only additional cells in that region
+
+  regions(1) = regions(1) - regions(0);
+
+  regions(0) = regions(0);
+  regions(1) = regions(1);
+  regions(2) = regions(2);;
+
+  VectorXd fractions(3);
+
+  fractions(0) = double(regions(0))/ double(particles.size());
+  fractions(1) = double(regions(1))/ double(particles.size());
+  fractions(2) = double(regions(2))/ double(particles.size());
+
+  //return proportions;
+      return fractions;
 
 
 }
@@ -1783,13 +1845,13 @@ VectorXi proportions(double diff_conc, int n_seed) {
 int main(){
 
     const int number_parameters = 1; // parameter range
-    const int sim_num = 1;
+    const int sim_num = 100;
 
     //VectorXi vector_check_length = proportions(0.05, 2); //just to know what the length is
     //cout << "prop " << vector_check_length << endl;
     //int num_parts = vector_check_length.size(); // number of parts that I partition my domain
-    int num_parts = 21; // for 1800 timesteps
-    MatrixXf sum_of_all = MatrixXf::Zero(num_parts,number_parameters); // sum of the values over all simulations
+    int num_parts = 3; // for 1800 timesteps
+    MatrixXd sum_of_all = MatrixXd::Zero(num_parts,number_parameters); // sum of the values over all simulations
 
     // n would correspond to different seeds
     // parallel programming
@@ -1810,41 +1872,42 @@ int main(){
         }
 
         //initialise the matrix to store the values
-        MatrixXi numbers = MatrixXi::Zero(num_parts,number_parameters);
+        MatrixXd numbers = MatrixXd::Zero(num_parts,number_parameters);
 
         //#pragma omp parallel for
         //        for (int i = 0; i < number_parameters; i++) {
 
         //for (int j = 0; j < 1; j++) {
 
-        numbers.block(0,0,num_parts,1) = proportions(threshold[0], 4);
+        numbers.block(0,0,num_parts,1) = proportions(threshold[0], n);
 
         //}
         // }
 
 
-//        // This is what I am using for MATLAB
-//        ofstream output2("control_case.csv");
-//
-//        for (int i = 0; i < numbers.rows(); i++) {
-//
-//            for (int j = 0; j < numbers.cols(); j++) {
-//
-//
-//                output2 << numbers(i, j) << ", ";
-//
-//                sum_of_all(i,j) += numbers(i,j);
-//
-//            }
-//            output2 << "\n" << endl;
-//        }
+        // This is what I am using for MATLAB
+        //ofstream output2(".//NEW REGIONS DATA//RegionsSeparateFullBoundary" + to_string(n) + ".csv");
+
+
+        for (int i = 0; i < numbers.rows(); i++) {
+
+            for (int j = 0; j < numbers.cols(); j++) {
+
+
+              //  output2 << numbers(i, j) << ", ";
+
+                sum_of_all(i,j) += numbers(i,j);
+
+            }
+           // output2 << "\n" << endl;
+        }
 
     }
     /*
     * will store everything in one matrix, the entries will be summed over all simulations
     */
 
-//    ofstream output3("aqp_M9.csv");
+//    ofstream output3(".//NEW REGIONS DATA//REGIONS600boundary.csv");
 //
 //    for (int i = 0; i < num_parts; i++) {
 //
